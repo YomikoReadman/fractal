@@ -102,7 +102,7 @@ function start()
     canvas.addEventListener("mousemove", function() {
         x = 2.0 * (event.pageX - canvas.offsetLeft) / canvas.width - 1.0;
         y = 1.0 - 2.0 * (event.pageY - canvas.offsetTop) / canvas.height;
-    }, false);
+    }, false); 
     
     $("#zoomOutput").val( 1 / zoom);
     $("#centerOffsetXOutput").val(off_x);
@@ -112,7 +112,7 @@ function start()
 $(function() { 
     start();
     
-    var wnd = $(window);
+    var wnd = $("body");
     var canvas = $("#canvas");
     
     document.oncontextmenu = function() {return false;};
@@ -133,20 +133,20 @@ $(function() {
     });
    
     
-    wnd.resize(function(e){
-        canvas.height(wnd.height());
+    // wnd.resize(function(e){
+        // canvas.height(wnd.height());
         
-        var aspectRatio = 1.;
-        var ww = wnd.height() * aspectRatio
-        canvas.width(ww);
+        // var aspectRatio = 1.;
+        // var ww = canvas.height() * aspectRatio
+        // canvas.width(ww);
         
-        canvas.css('margin-left', (wnd.width() / 2 - ww / 2)+'px');
+        // canvas.css('margin-left', (wnd.width() / 2 - ww / 2)+'px');
         
-        gl.viewportWidth = canvas.width();
-        gl.viewportHeight = canvas.height();
+        // gl.viewportWidth = canvas.width();
+        // gl.viewportHeight = canvas.height();
         
-        draw();
-    }).trigger('resize');
+        // draw();
+    // }).trigger('resize');
     
     $("#reset_zoom").click(function() {
         zoom = 2.0;
