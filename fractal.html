@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Fractal WebGL example</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<script src="jquery-3.3.1.min.js"></script>
+<script src="jquery.mousewheel.min.js"></script>
+<script src="draw.js"></script>
+
+<style type="text/css" media="screen">
+body{
+    background-color: #333333;
+}
+
+input[type="submit"] {
+    background-color: blue;
+    border: none;
+    padding: 3px 5px;
+    color: #FFF;
+}
+
+input[type="number"] {
+    max-width: 100px;
+}
+
+#controls {
+    position: absolute;
+    float: left;
+    top: 0;
+    right: 0;
+    margin: 10px 20px;
+}
+
+#controls *{
+    margin-top: 10px;
+}
+
+label {
+    color: #FFF;
+    margin-right: 5px;
+}
+
+#zoomOutput {
+    margin-left: 12px;
+}
+
+#dx, #dy {
+    margin-left: 30px;
+}
+</style>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+    attribute vec2 vertex_position;
+    varying vec2 fragment_position;
+    uniform vec2 offset;
+    uniform float zoom;
+    void main()
+    {
+        gl_Position = vec4(vertex_position, 0.0, 1.0);
+        fragment_position = zoom * vertex_position + offset;
+    }
+</script>
+
+<script id="argb-srgb" type="x-shader/x-fragment">
+    vec4 argb(float r, float g, float b)
+    {
+        r = clamp(r, 0.0, 1.0);
+        g = clamp(g, 0.0, 1.0);
+        b = clamp(b, 0.0, 1.0);
+        float K0 = 0.03928;
+        float a = 0.055;
+        float phi = 12.92;
+        float gamma = 2.4;
+        r = r <= K0 / phi ? r * phi : (1.0 + a) * pow(r, 1.0 / gamma) - a;
+        g = g <= K0 / phi ? g * phi : (1.0 + a) * pow(g, 1.0 / gamma) - a;
+        b = b <= K0 / phi ? b * phi : (1.0 + a) * pow(b, 1.0 / gamma) - a;
+        return vec4(r, g, b, 1.0);
+    }
+</script>
+
+<script id="argb-linear" type="x-shader/x-fragment">
+    vec4 argb(float r, float g, float b)
+    {
+        return vec4(r, g, b, 1.0);
+    }
+</script>
+
+<script id="sane-code" type="x-shader/x-fragment">
+    float inside(vec2 z)
+    {
+        return dot(z, z) < 4.0 ? 1.0 : 0.0;
+    }
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+    #define iterations MAX_ITER
+    varying vec2 fragment_position;
+    uniform sampler2D uSampler;
+    
+    vec2 cmul(vec2 a, vec2 b)
+    {
+        return vec2(a[0] * b[0] - a[1] * b[1], a[1] * b[0] + a[0] * b[1]);
+    }
+    vec4 rainbow(float v)
+    {
+        float r = 6.0 * abs(v - 3.0 / 6.0) - 1.0;
+        float g = 2.0 - 6.0 * abs(v - 2.0 / 6.0);
+        float b = 2.0 - 6.0 * abs(v - 4.0 / 6.0);
+        return argb(r, g, b);
+    }
+    
+    void main()
+    {
+        vec2 z = vec2(0.0, 0.0);
+        vec2 c = fragment_position;
+        float counter = 0.0;
+        for (int i = 0; i < iterations; i++) {
+            counter += inside(z);
+            z = cmul(z, z) + c;        
+        }
+        gl_FragColor = counter < float(iterations) ? rainbow(0.01 * counter) : vec4(0.0, 0.0, 0.0, 1.0); 
+    }
+</script>
+</head>
+
+<body style="color: silver; background-color: black">
+
+  <canvas id="canvas" style="border: none; cursor: default;" width="512" height="512"></canvas>
+
+  <div id="controls">
+      <input type="submit" value="Reset" id="reset_zoom"/>
+      <p>
+      
+      <label for="zoomCenterXInput">ZoomX</label>
+      <input type="number" id="centerOffsetXOutput" /> <br/>
+      
+      <label for="zoomCenterXInput">ZoomY</label>
+      <input type="number" id="centerOffsetYOutput" /> <br/>
+
+      <label for="zoomCenterXInput">Zoom</label>
+      <input type="number" id="zoomOutput" step="0.1"/><br/>
+      
+      <label for="iterations" style="margin-left: -10px;">Iterations</label>
+      <input type="number" id="iterations" step="10" value="100" min="40" max="300"/><br/>
+      
+  </div>
+
+<canvas id="canvas" style="border: none; cursor: default;" width="512" height="512">
+WebGL not enabled?
+</canvas>
+</body>
+
+</html>
